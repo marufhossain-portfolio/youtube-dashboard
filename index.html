@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Islamic Pause — YouTube Dashboard</title>
+  <title>Islamic Pause — YouTube Analytics</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23ff0000'/%3E%3Ctext x='50' y='68' font-size='52' font-weight='bold' font-family='Arial' text-anchor='middle' fill='white'%3EYT%3C/text%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
   <header class="topbar">
@@ -14,7 +15,7 @@
       <div class="brand">
         <span class="brand-mark">YT</span>
         <div class="brand-text">
-          <h1>YouTube Dashboard</h1>
+          <h1>YouTube Analytics</h1>
           <p id="channelHandle">Loading…</p>
         </div>
       </div>
@@ -27,7 +28,7 @@
     </div>
   </header>
 
-  <section class="channel-banner" id="channelBanner">
+  <section class="channel-banner">
     <div class="banner-inner">
       <img id="channelAvatar" class="channel-avatar" alt="channel avatar" />
       <div class="channel-info">
@@ -43,26 +44,116 @@
     <div class="stat-card"><div class="stat-value" id="statViews">—</div><div class="stat-label">Total Views</div></div>
     <div class="stat-card"><div class="stat-value" id="statVideos">—</div><div class="stat-label">Videos</div></div>
     <div class="stat-card"><div class="stat-value" id="statLikes">—</div><div class="stat-label">Total Likes</div></div>
+    <div class="stat-card"><div class="stat-value" id="statComments">—</div><div class="stat-label">Total Comments</div></div>
+    <div class="stat-card"><div class="stat-value" id="statEngagement">—</div><div class="stat-label">Avg Engagement</div></div>
   </section>
 
-  <section class="controls">
-    <div class="search-box">
-      <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M10 2a8 8 0 1 0 4.9 14.3l5.4 5.4 1.4-1.4-5.4-5.4A8 8 0 0 0 10 2zm0 2a6 6 0 1 1 0 12 6 6 0 0 1 0-12z"/></svg>
-      <input id="searchInput" type="text" placeholder="Search videos…" autocomplete="off" spellcheck="false" />
+  <nav class="tab-bar" id="tabBar">
+    <button class="tab active" data-tab="overview">Overview</button>
+    <button class="tab" data-tab="top">Top Videos</button>
+    <button class="tab" data-tab="tags">Tags & Keywords</button>
+    <button class="tab" data-tab="insights">Insights</button>
+    <button class="tab" data-tab="videos">All Videos</button>
+  </nav>
+
+  <!-- Overview -->
+  <section class="tab-panel active" id="panel-overview">
+    <div class="panel-grid">
+      <div class="panel-card">
+        <h3 class="panel-title">Upload Timeline</h3>
+        <div class="chart-wrap"><canvas id="chartUploads"></canvas></div>
+      </div>
+      <div class="panel-card">
+        <h3 class="panel-title">Views by Upload Month</h3>
+        <div class="chart-wrap"><canvas id="chartViewsMonth"></canvas></div>
+      </div>
     </div>
-    <select id="sortSelect" class="sort-select">
-      <option value="date">Newest first</option>
-      <option value="views">Most viewed</option>
-      <option value="likes">Most liked</option>
-      <option value="comments">Most commented</option>
-    </select>
+    <div class="panel-grid">
+      <div class="panel-card">
+        <h3 class="panel-title">Duration Breakdown</h3>
+        <div class="chart-wrap"><canvas id="chartDuration"></canvas></div>
+      </div>
+      <div class="panel-card">
+        <h3 class="panel-title">Category Breakdown</h3>
+        <div class="chart-wrap"><canvas id="chartCategory"></canvas></div>
+      </div>
+    </div>
   </section>
 
-  <div class="result-count" id="resultCount"></div>
+  <!-- Top Videos -->
+  <section class="tab-panel" id="panel-top">
+    <div class="panel-grid three">
+      <div class="panel-card">
+        <h3 class="panel-title">🔥 Most Viewed</h3>
+        <div class="ranked-list" id="topViews"></div>
+      </div>
+      <div class="panel-card">
+        <h3 class="panel-title">👍 Most Liked</h3>
+        <div class="ranked-list" id="topLikes"></div>
+      </div>
+      <div class="panel-card">
+        <h3 class="panel-title">💬 Most Commented</h3>
+        <div class="ranked-list" id="topComments"></div>
+      </div>
+    </div>
+    <div class="panel-card">
+      <h3 class="panel-title">📈 Highest Engagement Rate (likes per view)</h3>
+      <div class="ranked-list" id="topEngagement"></div>
+    </div>
+  </section>
 
-  <main class="video-grid" id="videoGrid">
-    <div class="loading" id="loading">Loading videos…</div>
-  </main>
+  <!-- Tags & Keywords -->
+  <section class="tab-panel" id="panel-tags">
+    <div class="panel-grid">
+      <div class="panel-card">
+        <h3 class="panel-title">🏷️ Top Tags (by total views)</h3>
+        <div class="ranked-list" id="topTags"></div>
+      </div>
+      <div class="panel-card">
+        <h3 class="panel-title">🔑 Top Keywords in Titles (by total views)</h3>
+        <div class="ranked-list" id="topKeywords"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Insights -->
+  <section class="tab-panel" id="panel-insights">
+    <div class="panel-grid">
+      <div class="panel-card">
+        <h3 class="panel-title">Best Day to Publish (avg views)</h3>
+        <div class="chart-wrap"><canvas id="chartDay"></canvas></div>
+      </div>
+      <div class="panel-card">
+        <h3 class="panel-title">Best Hour to Publish (avg views)</h3>
+        <div class="chart-wrap"><canvas id="chartHour"></canvas></div>
+      </div>
+    </div>
+    <div class="panel-card">
+      <h3 class="panel-title">📅 Monthly Performance (videos vs avg views)</h3>
+      <div class="chart-wrap"><canvas id="chartMonthlyPerf"></canvas></div>
+    </div>
+  </section>
+
+  <!-- All Videos -->
+  <section class="tab-panel" id="panel-videos">
+    <div class="controls">
+      <div class="search-box">
+        <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M10 2a8 8 0 1 0 4.9 14.3l5.4 5.4 1.4-1.4-5.4-5.4A8 8 0 0 0 10 2zm0 2a6 6 0 1 1 0 12 6 6 0 0 1 0-12z"/></svg>
+        <input id="searchInput" type="text" placeholder="Search videos…" autocomplete="off" spellcheck="false" />
+      </div>
+      <select id="sortSelect" class="sort-select">
+        <option value="date">Newest first</option>
+        <option value="views">Most viewed</option>
+        <option value="likes">Most liked</option>
+        <option value="comments">Most commented</option>
+        <option value="engagement">Best engagement</option>
+      </select>
+    </div>
+    <div class="result-count" id="resultCount"></div>
+    <main class="video-grid" id="videoGrid">
+      <div class="loading" id="loading">Loading videos…</div>
+    </main>
+  </section>
 
   <footer class="footer">
     <span id="footerInfo">Data via YouTube Data API</span>
