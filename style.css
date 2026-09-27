@@ -111,8 +111,27 @@ html, body {
 
 .footer { max-width: 1280px; margin: 0 auto; padding: 16px 24px 40px; color: #666; font-size: 12px; }
 
+/* Tab bar scrollable on mobile */
+.tab-bar { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.tab-bar::-webkit-scrollbar { display: none; }
+.tab { white-space: nowrap; }
+
 @media (max-width: 900px) {
   .stats-row { grid-template-columns: repeat(3, 1fr); }
   .panel-grid, .panel-grid.three { grid-template-columns: 1fr; }
   .banner-inner { flex-direction: column; text-align: center; }
+  .video-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+  .chart-wrap { height: 220px; }
+}
+
+@media (max-width: 520px) {
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .stat-value { font-size: 17px; }
+  .topbar-inner { padding: 10px 14px; }
+  .channel-banner, .stats-row, .tab-bar, .tab-panel, .controls { padding-left: 14px; padding-right: 14px; }
+  .video-grid { grid-template-columns: 1fr; }
+  .channel-info h1 { font-size: 20px; }
+  .channel-avatar { width: 72px; height: 72px; }
+  .panel-card { padding: 14px; }
+  .chart-wrap { height: 200px; }
 }
