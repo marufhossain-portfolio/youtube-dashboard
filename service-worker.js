@@ -29,21 +29,14 @@ self.addEventListener("activate", function (e) {
 self.addEventListener("fetch", function (e) {
   var url = new URL(e.request.url);
   if (e.request.method !== "GET") return;
-  // Network-first for YouTube API calls (always fresh)
-  if (url.hostname.indexOf("googleapis.com") >= 0) {
-    e.respondWith(
-      fetch(e.request).catch(function () { return caches.match(e.request); })
-    );
-    return;
-  }
-  // Cache-first for static assets
+  // Network-first (with cache fallback) so the dashboard always shows latest updates
   e.respondWith(
-    caches.match(e.request).then(function (cached) {
-      return cached || fetch(e.request).then(function (resp) {
-        var clone = resp.clone();
-        caches.open(CACHE).then(function (c) { c.put(e.request, clone); });
-        return resp;
-      });
+    fetch(e.request).then(function (resp) {
+      var clone = resp.clone();
+      caches.open(CACHE).then(function (c) { c.put(e.request, clone); });
+      return resp;
+    }).catch(function () {
+      return caches.match(e.request);
     })
   );
 });
